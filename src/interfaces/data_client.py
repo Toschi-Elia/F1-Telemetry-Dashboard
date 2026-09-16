@@ -10,7 +10,7 @@ class IDataClient(ABC):
     """
     
     @abstractmethod
-    def get_car_telemetry(self, session_key: int, driver_number: int) -> pd.DataFrame:
+    def get_car_telemetry(self, session_key: int, driver_number: int, date_start: Optional[str] = None, date_end: Optional[str]=None) -> pd.DataFrame:
         """
         Recupera la telemetria grezza della vettura.
         """

@@ -52,14 +52,19 @@ def align_to_distance_grid(df: pd.DataFrame, resolution_m: float=1.0)->pd.DataFr
 
     result = pd.DataFrame({"distance_m": grid})
 
+    print(f"!!! DEBUG INTERPOLAZIONE: Colonne in ingresso: {df.columns.tolist()}")
+    print(f"!!! DEBUG INTERPOLAZIONE: Ci sono NaN in distance_m? {df['distance_m'].isna().any()}")
+    print(f"!!! DEBUG INTERPOLAZIONE: Ci sono duplicati in distance_m? {df['distance_m'].duplicated().any()}")
+
     for col in SIGNAL_COLUMNS:
         if col not in df.columns:
             logger.warning(f"Colonna '{col}' non trovata, la salto.")
             continue
+        print(f"!!! DEBUG INTERPOLAZIONE: Provo ad interpolare {col}. NaN trovati: {df[col].isna().sum()}")
 
-    interpolator = interp1d(df["distance_m"], df[col], kind="linear", bounds_error=False, fill_value="extrapolate")
+        interpolator = interp1d(df["distance_m"], df[col], kind="linear", bounds_error=False, fill_value="extrapolate")
 
-    result[col] = interpolator(grid)
-
+        result[col] = interpolator(grid)    
+    print(f"!!! DEBUG FINE INTERPOLAZIONE: Colonne generate: {result.columns.tolist()}")
     return result 
 

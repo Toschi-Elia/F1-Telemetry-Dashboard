@@ -7,6 +7,7 @@ from src.config import settings
 from src.logger import get_logger
 
 from pathlib import Path
+import re 
 
 logger = get_logger(__name__)
 
@@ -24,7 +25,8 @@ class OpenF1Client(IDataClient):
         Converte i parametri in una stringa leggibile per il nome del file.
         """
         params_str= "__".join(f"{k}_{v}" for k, v in sorted(params.items()))
-        filename= f"{endpoint}__{params_str}.parquet"
+        safe_params_str = re.sub(r'[<>:]', '_', params_str)
+        filename= f"{endpoint}__{safe_params_str}.parquet"
         return settings.CACHE_DIR/filename
     
     def _fetch_from_api(self, endpoint: str, params: dict)-> pd.DataFrame:
@@ -71,9 +73,14 @@ class OpenF1Client(IDataClient):
     
     # Implementazione interfaccia 
 
-    def get_car_telemetry(self, session_key: int, driver_number: int) -> pd.DataFrame:
+    def get_car_telemetry(self, session_key: int, driver_number: int, date_start: Optional[str] = None, date_end: Optional[str]=None ) -> pd.DataFrame:
         logger.info(f"Recupero telemetria per pilota {driver_number} (sessione {session_key})")
         params = {"session_key": session_key, "driver_number": driver_number}
+        if date_start:
+            params["date>"] = date_start
+        if date_end:
+            params["date<"] = date_end
+
         return self._fetch_from_api("car_data", params)
 
     def get_driver_info(self, session_key: int, driver_number: int) -> pd.DataFrame:

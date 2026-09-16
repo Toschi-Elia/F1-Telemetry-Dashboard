@@ -4,6 +4,7 @@ from src.infrastructure.openf1_client import OpenF1Client
 from src.core.telemetry import calculate_distance, align_to_distance_grid
 from src.presentation.plots import build_telemetry_chart
 from src.logger import get_logger
+import pandas as pd
 
 logger= get_logger(__name__)
 
@@ -31,26 +32,32 @@ analyze_btn= st.sidebar.button("Analizza Telemetria")
 # Logica 
 
 @st.cache_data
-def  process_driver_telemetry(session: int, driver: int):
-    df_lap= client.get_fastest_lap(session, driver)
+def process_driver_telemetry(session: int, driver: int):
+    df_lap = client.get_fastest_lap(session, driver)
     if df_lap is None or df_lap.empty:
         return None, None
-
+        
     date_start = df_lap["date_start"].values[0]
-
-    df_raw = client.get_car_telemetry(session, driver)
+    
+    lap_duration = df_lap["lap_duration"].values[0]
+    date_start_dt = pd.to_datetime(date_start)
+    date_end_dt = date_start_dt + pd.Timedelta(seconds=lap_duration)
+    # L'API richiede il formato ISO (es. "2023-05-27T14:24:45.123")
+    date_end = date_end_dt.isoformat()
+    
+    #scarichiamo la telemetria SOLO per questo specifico giro!
+    df_raw = client.get_car_telemetry(session, driver, date_start=date_start, date_end=date_end)
     if df_raw.empty:
-         return None, None 
+        return None, None
 
     df_dist = calculate_distance(df_raw)
     df_aligned = align_to_distance_grid(df_dist, resolution_m=1.0)
-
-    df_info= client.get_driver_info(session, driver)
+    
+    df_info = client.get_driver_info(session, driver)
     driver_name = str(driver)
-
     if not df_info.empty:
-        driver_name = df_info["full_name"].values[0]
-
+         driver_name = df_info["full_name"].values[0]
+         
     return df_aligned, driver_name
 
 if analyze_btn: 
