@@ -29,3 +29,16 @@ class IDataClient(ABC):
         Recupera le tempistiche del giro più veloce.
         """
         pass
+
+    @abstractmethod
+    def get_sessions_by_year(serf, year: int) -> pd.DataFrame:
+        """Prende tutte le sessioni di un anno """
+        pass
+
+    @abstractmethod
+    def get_drivers_by_session(sefl, session_key: int) -> pd.DataFrame:
+        """Prende tutti i piloti di una sessione"""
+        pass 
+
+
+    

@@ -110,7 +110,16 @@ class OpenF1Client(IDataClient):
             logger.error("Dati anomali: colonna 'lap_duration' mancante." )
             return None
 
-        
+    def get_sessions_by_year(self, year: int) -> pd.DataFrame:
+        logger.info(f"Recupero sessioni per l'anno {year}")
+        return  self._fetch_from_api("sessions", {"year": year})
+
+    def get_drivers_by_session(sefl, session_key):
+        logger.info(f"Recupero piloti per la sessione {session_key}")
+        df=sefl._fetch_from_api("drivers", {"session_key": session_key})
+        if not df.empty:
+            df= df.drop_duplicates(subset=["driver_number"])
+        return df
 
 
     
