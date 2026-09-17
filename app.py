@@ -22,11 +22,12 @@ st.markdown("Confronta la telemetria di due piloti sullo stesso circuito. L'asse
 
 st.sidebar.header("Impostazioni")
 
-session_key = st.sidebar.number_input("Session Key (es. 9158 per Monaco Qualy", value=9158, step=1)
-driver1 = st.sidebar.number_input("Numero Pilota 1 (es. 1 = Verstappen)", value=1, step=1)
-driver2 = st.sidebar.number_input("Numero Pilota 2 (es. 14 = Alonso)", value=14, step=1)
+with st.sidebar.form(key="telematry_form"):
+    session_key = st.number_input("Session Key (es. 9158 per Monaco Qualy", value=9158, step=1)
+    driver1 = st.number_input("Numero Pilota 1 (es. 1 = Verstappen)", value=1, step=1)
+    driver2 = st.number_input("Numero Pilota 2 (es. 14 = Alonso)", value=14, step=1)
 
-analyze_btn= st.sidebar.button("Analizza Telemetria")
+    analyze_btn= st.form_submit_button("Analizza Telemetria")
 
 
 # Logica 
