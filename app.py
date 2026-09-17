@@ -5,6 +5,7 @@ from src.core.telemetry import calculate_distance, align_to_distance_grid
 from src.presentation.plots import build_telemetry_chart
 from src.logger import get_logger
 import pandas as pd
+import datetime
 
 logger= get_logger(__name__)
 
@@ -22,11 +23,37 @@ st.markdown("Confronta la telemetria di due piloti sullo stesso circuito. L'asse
 
 st.sidebar.header("Impostazioni")
 
-with st.sidebar.form(key="telematry_form"):
-    session_key = st.number_input("Session Key (es. 9158 per Monaco Qualy", value=9158, step=1)
-    driver1 = st.number_input("Numero Pilota 1 (es. 1 = Verstappen)", value=1, step=1)
-    driver2 = st.number_input("Numero Pilota 2 (es. 14 = Alonso)", value=14, step=1)
+current_year = datetime.datetime.now().year
+avaible_years= list(range(current_year, 2022, -1))
 
+selected_year = st.sidebar.selectbox("Anno del Campionato", avaible_years)
+
+df_sessions = client.get_sessions_by_year(selected_year)
+dict_sessions={}
+
+if not df_sessions.empty:
+    for _, row in df_sessions.iterrows():
+        readable_name= f"{row['country_name']} - {row['session_name']}"
+        dict_sessions[readable_name] = row["session_key"]
+
+selected_session_name = st.sidebar.selectbox("Gara e Sessione", options=list(dict_sessions.keys()))
+session_key= dict_sessions[selected_session_name]
+
+df_drivers = client.get_drivers_by_session(session_key)
+dict_drivers = {}
+
+if not df_drivers.empty:
+    for _, row in df_drivers.iterrows():
+        dict_drivers[row["full_name"]] = row["driver_number"]
+
+    
+
+with st.sidebar.form(key="telematry_form"):
+
+    driver_option= list(dict_drivers.keys()) if dict_drivers else ["Nessun pilota trovato"]
+    selected_driver1_name= st.selectbox("Pilota 1", options=driver_option, index=0)
+    selected_driver2_name= st.selectbox("Pilota 2", options=driver_option, index=1 if len(driver_option) > 1 else 0)
+    
     analyze_btn= st.form_submit_button("Analizza Telemetria")
 
 
@@ -61,15 +88,20 @@ def process_driver_telemetry(session: int, driver: int):
          
     return df_aligned, driver_name
 
-if analyze_btn: 
-    with st.spinner("Scarico i dati ed eseguo l'allineamento spaziale..."):
-        df1, name1= process_driver_telemetry(session_key, driver1)
+if analyze_btn:
 
-        df2, name2= process_driver_telemetry(session_key, driver2)
+    if "Nessun pilota trovato" in driver_option:
+        st.errors("Dati piloti non disponibili per questa sessione.")
+    else:
+        driver1= dict_drivers[selected_driver1_name]
+        driver2 = dict_drivers[selected_driver2_name]
+
+    with st.spinner("Scarico i dati ed eseguo l'allineamento spaziale..."):
+        df1, name1 = process_driver_telemetry(session_key, driver1)
+        df2, name2 = process_driver_telemetry(session_key, driver2)
 
         if df1 is None or df2 is None:
-            st.error("Dati non trovati per uno dei piloti nella sessione indicata.")
-        else:
-            fig = build_telemetry_chart(df1, df2, name1, name2)
-
+            st.error("Dati telemetrici non trovati per uno dei piloti.")
+        else :
+            fig= build_telemetry_chart(df1, df2, name1, name2)
             st.plotly_chart(fig, use_container_width=True)
