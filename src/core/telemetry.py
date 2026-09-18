@@ -58,7 +58,8 @@ def align_to_distance_grid(df: pd.DataFrame, resolution_m: float=1.0)->pd.DataFr
             logger.warning(f"Colonna '{col}' non trovata, la salto.")
             continue
 
-        interpolator = interp1d(df["distance_m"], df[col], kind="linear", bounds_error=False, fill_value="extrapolate")
+        interp_kind = "nearest" if col== "n_gear" else "linear"
+        interpolator = interp1d(df["distance_m"], df[col], kind=interp_kind, bounds_error=False, fill_value="extrapolate")
 
         result[col] = interpolator(grid)    
     return result 

@@ -43,8 +43,12 @@ df_drivers = client.get_drivers_by_session(session_key)
 dict_drivers = {}
 
 if not df_drivers.empty:
+    df_drivers= df_drivers.sort_values(by="driver_number")
     for _, row in df_drivers.iterrows():
-        dict_drivers[row["full_name"]] = row["driver_number"]
+        label = f"{row['full_name']} ({row['driver_number']}) - {row['team_name']}"
+        dict_drivers[label] = row["driver_number"]
+
+
 
     
 
@@ -84,8 +88,10 @@ def process_driver_telemetry(session: int, driver: int):
     df_info = client.get_driver_info(session, driver)
     driver_name = str(driver)
     if not df_info.empty:
-         driver_name = df_info["full_name"].values[0]
-         
+        nome_pilota = df_info["full_name"].values[0]
+        nome_team= df_info["team_name"].values[0]
+
+        driver_name= f"{nome_pilota} - {nome_team}"
     return df_aligned, driver_name
 
 if analyze_btn:

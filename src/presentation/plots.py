@@ -13,20 +13,20 @@ def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, driver1_name: s
     color2= "#920000"
 
     # -- Velocità --
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['speed'], name=driver1_name, legendgroup=driver1_name, showlegend=True, line=dict(color=color1)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['speed'], name=driver2_name, legendgroup=driver2_name, showlegend=True, line=dict(color=color2)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['speed'], name=driver1_name, legendgroup=driver1_name, showlegend=True, line=dict(color=color1), hovertemplate="%{y:.1f} km/h"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['speed'], name=driver2_name, legendgroup=driver2_name, showlegend=True, line=dict(color=color2), hovertemplate="%{y:.1f} km/h"), row=1, col=1)
 
     # -- Acceleratore --
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['throttle'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1)), row=2, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['throttle'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2)), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['throttle'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1), hovertemplate="%{y:.1f} %"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['throttle'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2), hovertemplate="%{y:.1f} %" ), row=2, col=1)
 
     # -- Freno --
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['brake'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1)), row=3, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['brake'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2)), row=3, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['brake'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1), hovertemplate="%{y:.1f} %"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['brake'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2), hovertemplate="%{y:.1f} %"), row=3, col=1)
 
     # -- Marcia -- 
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['n_gear'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1)), row=4, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['n_gear'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2)), row=4, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['n_gear'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1),hovertemplate="Marcia: %{y:.0f}"), row=4, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['n_gear'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2),hovertemplate="Marcia: %{y:.0f}"), row=4, col=1)
 
     fig.update_layout(
         height=900, 
