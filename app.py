@@ -6,6 +6,7 @@ from src.presentation.plots import build_telemetry_chart
 from src.logger import get_logger
 import pandas as pd
 import datetime
+from src.constants import TEAM_ACRONYMS
 
 logger= get_logger(__name__)
 
@@ -69,44 +70,55 @@ def process_driver_telemetry(session: int, driver: int):
         return None, None
         
     date_start = df_lap["date_start"].values[0]
-    
     lap_duration = df_lap["lap_duration"].values[0]
     date_start_dt = pd.to_datetime(date_start)
     date_end_dt = date_start_dt + pd.Timedelta(seconds=lap_duration)
-    # L'API richiede il formato ISO (es. "2023-05-27T14:24:45.123")
     date_end = date_end_dt.isoformat()
     
-    #scarichiamo la telemetria SOLO per questo specifico giro!
     df_raw = client.get_car_telemetry(session, driver, date_start=date_start, date_end=date_end)
     if df_raw.empty:
         return None, None
-
+        
     df_dist = calculate_distance(df_raw)
     df_aligned = align_to_distance_grid(df_dist, resolution_m=1.0)
     
     df_info = client.get_driver_info(session, driver)
-    driver_name = str(driver)
-    if not df_info.empty:
-        nome_pilota = df_info["full_name"].values[0]
-        nome_team= df_info["team_name"].values[0]
 
-        driver_name= f"{nome_pilota} - {nome_team}"
-    return df_aligned, driver_name
+    driver_info= { "short_label": str(driver),
+                   "long_label": f"Pilota {driver}"}
+    driver_name = str(driver) 
+    
+    if not df_info.empty:
+        nome_completo= df_info["full_name"].values[0]
+        nome_abbrev = df_info["name_acronym"].values[0]
+        nome_team = df_info["team_name"].values[0]
+        team_abbrev = TEAM_ACRONYMS.get(nome_team, nome_team[:3].upper())
+
+        driver_info ={ 
+            "full_name": nome_completo,
+            "name_acronym": nome_abbrev,
+            "team_name": nome_team,
+            "team_acronym": team_abbrev,
+            "short_label": f"{nome_abbrev} - {team_abbrev}",
+            "long_label": f"{nome_completo} - {nome_team}"
+        }
+         
+    return df_aligned, driver_info
 
 if analyze_btn:
 
     if "Nessun pilota trovato" in driver_option:
-        st.errors("Dati piloti non disponibili per questa sessione.")
+        st.error("Dati piloti non disponibili per questa sessione.")
     else:
         driver1= dict_drivers[selected_driver1_name]
         driver2 = dict_drivers[selected_driver2_name]
 
-    with st.spinner("Scarico i dati ed eseguo l'allineamento spaziale..."):
-        df1, name1 = process_driver_telemetry(session_key, driver1)
-        df2, name2 = process_driver_telemetry(session_key, driver2)
+        with st.spinner("Scarico i dati ed eseguo l'allineamento spaziale..."):
+            df1, info1 = process_driver_telemetry(session_key, driver1)
+            df2, info2 = process_driver_telemetry(session_key, driver2)
 
-        if df1 is None or df2 is None:
-            st.error("Dati telemetrici non trovati per uno dei piloti.")
-        else :
-            fig= build_telemetry_chart(df1, df2, name1, name2)
-            st.plotly_chart(fig, use_container_width=True)
+            if df1 is None or df2 is None:
+                st.error("Dati telemetrici non trovati per uno dei piloti.")
+            else :
+                fig= build_telemetry_chart(df1, df2, info1, info2)
+                st.plotly_chart(fig, use_container_width=True)

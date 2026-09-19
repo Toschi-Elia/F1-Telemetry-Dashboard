@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, driver1_name: str, driver2_name: str)-> go.Figure: 
+def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, info2: dict)-> go.Figure: 
     """
     Costruisce un grafo interattivo multi-asse per confrontare 2 piloti 
     """
@@ -12,26 +12,36 @@ def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, driver1_name: s
     color1= "#0300A3"
     color2= "#920000"
 
+    short1 = info1["short_label"]
+    short2 = info2["short_label"] 
+    nome_short1= info1["name_acronym"]
+    nome_short2= info2["name_acronym"]
+    nome_long1= info1["full_name"]
+    nome_long2= info2["full_name"]
+    team_short1= info1["team_acronym"]
+    team_short2= info2["team_acronym"]
+
+
     # -- Velocità --
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['speed'], name=driver1_name, legendgroup=driver1_name, showlegend=True, line=dict(color=color1), hovertemplate="%{y:.1f} km/h"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['speed'], name=driver2_name, legendgroup=driver2_name, showlegend=True, line=dict(color=color2), hovertemplate="%{y:.1f} km/h"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['speed'], name=nome_short1, legendgroup=short1, showlegend=True, line=dict(color=color1), hovertemplate="%{y:.1f} km/h"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['speed'], name=nome_short2, legendgroup=short2, showlegend=True, line=dict(color=color2), hovertemplate="%{y:.1f} km/h"), row=1, col=1)
 
     # -- Acceleratore --
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['throttle'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1), hovertemplate="%{y:.1f} %"), row=2, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['throttle'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2), hovertemplate="%{y:.1f} %" ), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['throttle'], name=nome_short1, legendgroup=short1, showlegend=False, line=dict(color=color1), hovertemplate="%{y:.1f} %"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['throttle'], name=nome_short2, legendgroup=short2, showlegend=False, line=dict(color=color2), hovertemplate="%{y:.1f} %" ), row=2, col=1)
 
     # -- Freno --
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['brake'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1), hovertemplate="%{y:.1f} %"), row=3, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['brake'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2), hovertemplate="%{y:.1f} %"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['brake'], name=nome_short1, legendgroup=short1, showlegend=False, line=dict(color=color1), hovertemplate="%{y:.1f} %"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['brake'], name=nome_short2, legendgroup=short2, showlegend=False, line=dict(color=color2), hovertemplate="%{y:.1f} %"), row=3, col=1)
 
     # -- Marcia -- 
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['n_gear'], name=driver1_name, legendgroup=driver1_name, showlegend=False, line=dict(color=color1),hovertemplate="Marcia: %{y:.0f}"), row=4, col=1)
-    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['n_gear'], name=driver2_name, legendgroup=driver2_name, showlegend=False, line=dict(color=color2),hovertemplate="Marcia: %{y:.0f}"), row=4, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['n_gear'], name=nome_short1, legendgroup=short1, showlegend=False, line=dict(color=color1),hovertemplate="Marcia: %{y:.0f}"), row=4, col=1)
+    fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['n_gear'], name=nome_short2, legendgroup=short2, showlegend=False, line=dict(color=color2),hovertemplate="Marcia: %{y:.0f}"), row=4, col=1)
 
     fig.update_layout(
         height=900, 
         template="plotly_dark", 
-        title_text=f"Confronto Telemetrico: {driver1_name} vs {driver2_name}", 
+        title_text=f"Confronto Telemetrico: {nome_long1} ({team_short1})     VS     {nome_long2} ({team_short2})", 
         hovermode="x unified"
     )
 
