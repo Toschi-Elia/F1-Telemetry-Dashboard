@@ -43,17 +43,11 @@ df_drivers = client.get_drivers_by_session(session_key)
 dict_drivers = {}
 
 if not df_drivers.empty:
-<<<<<<< HEAD
-    df_drivers= df_drivers.sort_values(by="driver_number")
+    df_drivers = df_drivers.sort_values(by="driver_number")
     for _, row in df_drivers.iterrows():
         label = f"{row['full_name']} ({row['driver_number']}) - {row['team_name']}"
         dict_drivers[label] = row["driver_number"]
 
-
-=======
-    for _, row in df_drivers.iterrows():
-        dict_drivers[row["full_name"]] = row["driver_number"]
->>>>>>> 92431b5bd9f41587ce2546c9e77809062e8a5578
 
     
 
