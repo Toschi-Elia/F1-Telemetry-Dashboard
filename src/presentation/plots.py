@@ -24,7 +24,7 @@ def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, in
 
     #-- Delta time --   
     delta_time = df1['time_elapsed'] - df2['time_elapsed']
-    fig.add_trace(go.Scatter(x=df1['distance_m'], y=delta_time, name=f"Delta {short1}", showlegend=False, line=dict(color="white", width=2), hovertemplate="Delta: %{y:.3f} s"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df1['distance_m'], y=delta_time, name=f"Delta {nome_short1}", showlegend=False, line=dict(color="white", width=2), hovertemplate="Delta: %{y:.3f} s"), row=1, col=1)
 
     # -- Velocità --
     fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['speed'], name=nome_short1, legendgroup=short1, showlegend=True, line=dict(color=color1), hovertemplate="%{y:.1f} km/h"), row=2, col=1)
@@ -49,6 +49,6 @@ def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, in
         hovermode="x unified"
     )
 
-    fig.update_xaxes(title_text="Distanza (metri)", row=4, col=1)
+    fig.update_xaxes(title_text="Distanza (metri)", row=5, col=1)
 
     return fig 

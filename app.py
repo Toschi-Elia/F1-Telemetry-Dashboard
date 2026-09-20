@@ -84,8 +84,14 @@ def process_driver_telemetry(session: int, driver: int):
     
     df_info = client.get_driver_info(session, driver)
 
-    driver_info= { "short_label": str(driver),
-                   "long_label": f"Pilota {driver}"}
+    driver_info = { 
+        "short_label": str(driver),
+        "long_label": f"Pilota {driver}",
+        "full_name": f"Pilota {driver}",
+        "name_acronym": str(driver),
+        "team_name": "Sconosciuto",
+        "team_acronym": "UNK"
+    }
     driver_name = str(driver) 
     
     if not df_info.empty:
