@@ -1,9 +1,8 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
-from scipy.signal import find_peaks
 
-def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, info2: dict)-> go.Figure: 
+def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, info2: dict, circuit_info=None)-> go.Figure: 
     """
     Costruisce un grafo interattivo multi-asse per confrontare 2 piloti 
     """
@@ -42,10 +41,37 @@ def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, in
     fig.add_trace(go.Scatter(x=df1['distance_m'], y=df1['n_gear'], name=nome_short1, legendgroup=short1, showlegend=False, line=dict(color=color1),hovertemplate="Marcia: %{y:.0f}"), row=5, col=1)
     fig.add_trace(go.Scatter(x=df2['distance_m'], y=df2['n_gear'], name=nome_short2, legendgroup=short2, showlegend=False, line=dict(color=color2),hovertemplate="Marcia: %{y:.0f}"), row=5, col=1)
 
+    if circuit_info is not None:
+        corner_distances = []
+        corner_numbers = []
+
+        y_corner = delta_time.max() + 3
+
+        for _, corner in circuit_info.corners.iterrows():
+            dist = corner['Distance']
+            num = corner['Number']
+
+            fig.add_vline(x=dist, line_width=1, line_dash="dot", line_color="rgba(255, 255, 255, 0.2)")
+
+            corner_distances.append(dist)
+            corner_numbers.append(str(num))
+
+        fig.add_trace(go.Scatter(
+            x=corner_distances, 
+            y=[y_corner] * len(corner_distances),
+            mode="markers+text",
+            marker=dict(size=18, color="#959735", line=dict(color="black", width=1.5)), 
+            text=corner_numbers,
+            textfont=dict(color="black", size=9, family="Arial Black"),
+            showlegend=False,
+            hoverinfo="skip" 
+        ), row=1, col=1)
+
+
     fig.update_layout(
-        height=900, 
+        height=1000, 
         template="plotly_dark", 
-        title_text=f"Confronto Telemetrico: {nome_long1} ({team_short1})     VS     {nome_long2} ({team_short2})", 
+        title_text=f"Confronto Telemetrico: {nome_long1} ({team_short1})  vs  {nome_long2} ({team_short2})", 
         hovermode="x unified"
     )
 

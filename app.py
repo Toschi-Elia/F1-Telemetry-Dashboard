@@ -7,6 +7,7 @@ from src.logger import get_logger
 import pandas as pd
 import datetime
 from src.costants import TEAM_ACRONYMS
+from src.infrastructure.circuit_client import CircuitClient
 
 logger= get_logger(__name__)
 
@@ -16,6 +17,12 @@ st.set_page_config(page_title="F1 Telemetry Dashboard", layout="wide")
 @st.cache_resource
 def get_client():
     return OpenF1Client()
+
+@st.cache_resource
+def get_circuit_client():
+    return CircuitClient()
+
+circuit_client = get_circuit_client()
 
 client= get_client()
 
@@ -50,7 +57,8 @@ if not df_drivers.empty:
         dict_drivers[label] = row["driver_number"]
 
 
-    
+
+show_corners = st.sidebar.checkbox("🏁 Mostra Curve", value=True)
 
 with st.sidebar.form(key="telematry_form"):
 
@@ -119,12 +127,21 @@ if analyze_btn:
         driver1= dict_drivers[selected_driver1_name]
         driver2 = dict_drivers[selected_driver2_name]
 
-        with st.spinner("Scarico i dati ed eseguo l'allineamento spaziale..."):
+        session_row = df_sessions[df_sessions["session_key"] == session_key].iloc[0]
+        country_name = session_row["country_name"]
+        session_type = session_row["session_name"]
+
+
+        with st.spinner(f"Estrazione dati per {country_name}..."):
             df1, info1 = process_driver_telemetry(session_key, driver1)
             df2, info2 = process_driver_telemetry(session_key, driver2)
 
             if df1 is None or df2 is None:
                 st.error("Dati telemetrici non trovati per uno dei piloti.")
             else :
-                fig= build_telemetry_chart(df1, df2, info1, info2)
+                circuit_info = circuit_client.get_circuit_info(selected_year, country_name, session_type)
+
+                curves_to_plot = circuit_info if show_corners else None
+
+                fig= build_telemetry_chart(df1, df2, info1, info2, circuit_info=curves_to_plot)
                 st.plotly_chart(fig, use_container_width=True)

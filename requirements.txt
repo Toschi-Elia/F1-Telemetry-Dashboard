@@ -1,0 +1,12 @@
+streamlit
+pandas
+numpy
+requests
+plotly
+fastparquet
+python-dotenv
+pydantic
+pydantic-settings
+pytest
+mypy
+fastf1
