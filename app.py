@@ -6,7 +6,7 @@ from src.presentation.plots import build_telemetry_chart
 from src.logger import get_logger
 import pandas as pd
 import datetime
-from src.constants import TEAM_ACRONYMS
+from src.costants import TEAM_ACRONYMS
 
 logger= get_logger(__name__)
 

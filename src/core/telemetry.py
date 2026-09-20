@@ -27,6 +27,8 @@ def calculate_distance(df: pd.DataFrame)->pd.DataFrame:
 
     df["distance_m"]=(df["speed"]/3.6 * df["delta_t"]).cumsum()
 
+    df["time_elapsed"] = (df["date"] - df["date"].iloc[0]).dt.total_seconds()
+
     logger.info(f"Distanza calcolata. Distanza totale giro: {df['distance_m'].max():.0f} m")
 
     return df 
@@ -42,7 +44,7 @@ def align_to_distance_grid(df: pd.DataFrame, resolution_m: float=1.0)->pd.DataFr
     """
 
     # definizione colonne 
-    SIGNAL_COLUMNS = ["speed", "throttle", "brake", "n_gear", "rpm"]
+    SIGNAL_COLUMNS = ["speed", "throttle", "brake", "n_gear", "rpm", "time_elapsed"]
 
     # creazione griglia 
     max_distance= df["distance_m"].max()
