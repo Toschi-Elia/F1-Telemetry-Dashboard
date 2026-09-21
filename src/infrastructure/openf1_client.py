@@ -120,6 +120,13 @@ class OpenF1Client(IDataClient):
         if not df.empty:
             df= df.drop_duplicates(subset=["driver_number"])
         return df
+    def get_location( self, session_key: int, driver_number: int, date_start: Optional[str] = None, date_end: Optional[str] = None) -> pd.DataFrame:
+        logger.info(f"Recupero dati GPS per pilota {driver_number} (sessione {session_key})")
+        params = {"session_key": session_key, "driver_number": driver_number}
+        if date_start:
+            params["date>"] = date_start
+        if date_end:
+            params["date<"] = date_end
 
-
+        return self._fetch_from_api("location", params)
     

@@ -78,3 +78,45 @@ def build_telemetry_chart( df1: pd.DataFrame, df2: pd.DataFrame, info1: dict, in
     fig.update_xaxes(title_text="Distanza (metri)", row=5, col=1)
 
     return fig 
+
+def build_track_map(df_location: pd.DataFrame, circuit_info=None)-> go.Figure:
+    fig= go.Figure()
+
+    if df_location is not None and not df_location.empty:
+        fig.add_trace(go.Scatter(
+                    x=df_location['x'], 
+                    y=df_location['y'], 
+                    mode='lines',
+                    line=dict(color='white', width=3),
+                    name="Traiettoria",
+                    showlegend=False
+                ))
+
+    if circuit_info is not None:
+        corner_x, corner_y, corner_numbers = [], [], []
+
+        for _, corner in circuit_info.corners.iterrows():
+            corner_x.append(corner['X'])
+            corner_y.append(corner['Y'])
+            corner_numbers.append(str(corner['Number']))
+
+        fig.add_trace(go.Scatter(
+                    x=corner_x, 
+                    y=corner_y,
+                    mode="markers+text",
+                    marker=dict(size=14, color="#FFD700", line=dict(color="black", width=1.5)),
+                    text=corner_numbers,
+                    textfont=dict(color="black", size=9, family="Arial Black"),
+                    showlegend=False,
+                    hoverinfo="skip"
+                ))
+    fig.update_layout(
+        template="plotly_dark",
+        margin=dict(l=20, r=20, t=30, b=20),
+        xaxis=dict(showgrid=False, zeroline=False, visible=False, scaleanchor="y", scaleratio=1),
+        yaxis=dict(showgrid=False, zeroline=False, visible=False),
+        title_text="Tracciato",
+        height=500
+    )
+
+    return fig

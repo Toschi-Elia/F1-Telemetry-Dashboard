@@ -39,6 +39,9 @@ class IDataClient(ABC):
     def get_drivers_by_session(sefl, session_key: int) -> pd.DataFrame:
         """Prende tutti i piloti di una sessione"""
         pass 
-
+    
+    @abstractmethod
+    def get_location(self, session_key: int, driver_number: int, date_start: Optional[str] = None, date_end: Optional[str] = None) -> pd.DataFrame:
+        pass
 
     

@@ -8,6 +8,7 @@ import pandas as pd
 import datetime
 from src.costants import TEAM_ACRONYMS
 from src.infrastructure.circuit_client import CircuitClient
+from src.presentation.plots import build_telemetry_chart, build_track_map
 
 logger= get_logger(__name__)
 
@@ -23,6 +24,7 @@ def get_circuit_client():
     return CircuitClient()
 
 circuit_client = get_circuit_client()
+
 
 client= get_client()
 
@@ -141,7 +143,25 @@ if analyze_btn:
             else :
                 circuit_info = circuit_client.get_circuit_info(selected_year, country_name, session_type)
 
+                df_lap_p1= client.get_fastest_lap(session_key, driver1)
+                df_location = None
+
+                if df_lap_p1 is not None and not df_lap_p1.empty:
+                    d_start = df_lap_p1["date_start"].values[0]
+                    lap_dur = df_lap_p1["lap_duration"].values[0]
+                    d_end = (pd.to_datetime(d_start) + pd.Timedelta(seconds=lap_dur)).isoformat()
+                    df_location = client.get_location(session_key, driver1, date_start=d_start, date_end=d_end)
+
                 curves_to_plot = circuit_info if show_corners else None
 
-                fig= build_telemetry_chart(df1, df2, info1, info2, circuit_info=curves_to_plot)
-                st.plotly_chart(fig, use_container_width=True)
+                col_map, col_telemetry = st.columns([1,3])
+
+                with col_map: 
+                    fig_map = build_track_map(df_location, circuit_info=curves_to_plot)
+                    st.plotly_chart(fig_map, use_container_width=True)
+
+                with col_telemetry:
+                    fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=curves_to_plot)
+                    st.plotly_chart(fig_tel, use_container_width=True)
+
+              
