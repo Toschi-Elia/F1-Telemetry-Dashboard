@@ -1,5 +1,4 @@
 import streamlit as st
-
 from src.infrastructure.openf1_client import OpenF1Client
 from src.core.telemetry import calculate_distance, align_to_distance_grid
 from src.presentation.plots import build_telemetry_chart
@@ -60,7 +59,7 @@ if not df_drivers.empty:
 
 
 
-show_corners = st.sidebar.checkbox("🏁 Mostra Curve", value=True)
+
 
 with st.sidebar.form(key="telematry_form"):
 
@@ -70,8 +69,24 @@ with st.sidebar.form(key="telematry_form"):
     
     analyze_btn= st.form_submit_button("Analizza Telemetria")
 
+st.sidebar.divider() 
+show_corners = st.sidebar.checkbox("🏁 Mostra Curve", value=True)
+map_position = st.sidebar.radio("Posizione Mappa", ["Alto", "Basso", "Destra", "Sinistra", "Nascosta"], index=1)
 
 # Logica 
+
+@st.cache_data
+def process_map(session: int, driver:int):
+    df_lap = client.get_fastest_lap(session, driver)
+    if df_lap is not None and not df_lap.empty:
+        d_start = df_lap["date_start"].values[0]
+        lap_dur = df_lap["lap_duration"].values[0]
+        d_end = (pd.to_datetime(d_start) + pd.Timedelta(seconds = lap_dur)).isoformat()
+        return client.get_location(session, driver, date_start=d_start, date_end=d_end)
+
+    return None
+
+
 
 @st.cache_data
 def process_driver_telemetry(session: int, driver: int):
@@ -102,7 +117,6 @@ def process_driver_telemetry(session: int, driver: int):
         "team_name": "Sconosciuto",
         "team_acronym": "UNK"
     }
-    driver_name = str(driver) 
     
     if not df_info.empty:
         nome_completo= df_info["full_name"].values[0]
@@ -126,7 +140,7 @@ if analyze_btn:
     if "Nessun pilota trovato" in driver_option:
         st.error("Dati piloti non disponibili per questa sessione.")
     else:
-        driver1= dict_drivers[selected_driver1_name]
+        driver1 = dict_drivers[selected_driver1_name]
         driver2 = dict_drivers[selected_driver2_name]
 
         session_row = df_sessions[df_sessions["session_key"] == session_key].iloc[0]
@@ -141,27 +155,60 @@ if analyze_btn:
             if df1 is None or df2 is None:
                 st.error("Dati telemetrici non trovati per uno dei piloti.")
             else :
-                circuit_info = circuit_client.get_circuit_info(selected_year, country_name, session_type)
 
-                df_lap_p1= client.get_fastest_lap(session_key, driver1)
                 df_location = None
+                if map_position != "Nascosta":
+                    df_location = process_map(session_key, driver1)
 
-                if df_lap_p1 is not None and not df_lap_p1.empty:
-                    d_start = df_lap_p1["date_start"].values[0]
-                    lap_dur = df_lap_p1["lap_duration"].values[0]
-                    d_end = (pd.to_datetime(d_start) + pd.Timedelta(seconds=lap_dur)).isoformat()
-                    df_location = client.get_location(session_key, driver1, date_start=d_start, date_end=d_end)
+                circuit_info = None
+                if show_corners:
+                    circuit_info = circuit_client.get_circuit_info(selected_year, country_name, session_type)
 
-                curves_to_plot = circuit_info if show_corners else None
+                if map_position == "Sinistra":
+                    col_map, col_telemetry = st.columns([1,3])
 
-                col_map, col_telemetry = st.columns([1,3])
+                    with col_map:
+                        fig_map = build_track_map(df_location, circuit_info=circuit_info)
+                        st.plotly_chart(fig_map, use_container_width=True)
 
-                with col_map: 
-                    fig_map = build_track_map(df_location, circuit_info=curves_to_plot)
-                    st.plotly_chart(fig_map, use_container_width=True)
+                    with col_telemetry:
+                        fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=circuit_info)
+                        st.plotly_chart(fig_tel, use_container_width=True)
 
-                with col_telemetry:
-                    fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=curves_to_plot)
+                elif map_position == "Destra":
+                    col_telemetry, col_map = st.columns([3, 1])
+                    with col_telemetry:
+                        fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=circuit_info)
+                        st.plotly_chart(fig_tel, use_container_width=True)
+                        
+                    with col_map:
+                        fig_map = build_track_map(df_location, circuit_info=circuit_info)
+                        st.plotly_chart(fig_map, use_container_width=True)
+                        
+                elif map_position == "Basso":
+                    fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=circuit_info)
                     st.plotly_chart(fig_tel, use_container_width=True)
 
-              
+                    _, col_map_center, _ = st.columns([1,2,1])
+                    with col_map_center:
+                        fig_map = build_track_map(df_location, circuit_info=circuit_info)
+                        st.plotly_chart(fig_map, use_container_width=True)
+
+                elif map_position == "Alto":
+                    _, col_map_center, _ = st.columns([1, 2, 1])
+                    with col_map_center:
+                        fig_map = build_track_map(df_location, circuit_info=circuit_info)
+                        st.plotly_chart(fig_map, use_container_width=True)
+
+                    fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=circuit_info)
+                    st.plotly_chart(fig_tel, use_container_width=True)
+
+                else:
+                    fig_tel = build_telemetry_chart(df1, df2, info1, info2, circuit_info=circuit_info)
+                    st.plotly_chart(fig_tel, use_container_width=True)
+
+
+
+
+
+               
