@@ -41,13 +41,32 @@ df_sessions = client.get_sessions_by_year(selected_year)
 dict_sessions={}
 
 if not df_sessions.empty:
+    df_sessions["date_start"]= pd.to_datetime(df_sessions["date_start"])
+
+    now_utc= pd.Timestamp.utcnow()
+
+    df_sessions=df_sessions[(df_sessions["date_start"]<now_utc) & (df_sessions["is_cancelled"]!= True)]
+
+    df_sessions=df_sessions.sort_values(by="date_start", ascending=True)
+
     for _, row in df_sessions.iterrows():
-        readable_name= f"{row['country_name']} - {row['session_name']}"
+        data_formattata=row["date_start"].strftime("%d/%m")
+        readable_name = f"{row['country_name']} ({data_formattata}) - {row['session_name']}"
+
         dict_sessions[readable_name] = row["session_key"]
 
-selected_session_name = st.sidebar.selectbox("Gara e Sessione", options=list(dict_sessions.keys()))
+opzioni_sessioni= list(dict_sessions.keys())
+indice_default= 0
+for i, nome_sessione in enumerate(opzioni_sessioni):
+    if " - Race" in nome_sessione:
+        indice_default = i
+        break
+selected_session_name = st.sidebar.selectbox("Gara e Sessione", options=opzioni_sessioni, index=indice_default)   
+
 session_key= dict_sessions[selected_session_name]
 
+if "Day" in selected_session_name or "Testing" in selected_session_name:
+    st.sidebar.warning("⚠️ **Sessione di Test!**\nAlcuni piloti potrebbero non essere scesi in pista (o non avere tempi registrati). Se l'analisi fallisce, prova a selezionare il compagno di squadra.")
 df_drivers = client.get_drivers_by_session(session_key)
 dict_drivers = {}
 
@@ -56,8 +75,6 @@ if not df_drivers.empty:
     for _, row in df_drivers.iterrows():
         label = f"{row['full_name']} ({row['driver_number']}) - {row['team_name']}"
         dict_drivers[label] = row["driver_number"]
-
-
 
 
 
